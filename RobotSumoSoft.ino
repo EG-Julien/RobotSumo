@@ -82,14 +82,14 @@ void setup(void) {
 
 void loop(void) {
     int difMesure = frontLeftSensor() - frontRightSensor();
-    difMesure *= 10;
+    difMesure *= 5;
 
     if (difMesure == 0) {
-        controlMotor(255, 255);
-    } else if (difMesure < 0) {
-        controlMotor(255, 255 - difMesure);
+        controlMotor(150, 150);
     } else if (difMesure > 0) {
-        controlMotor(255 - difMesure, 255);
+        controlMotor(150, 150 - difMesure);
+    } else if (difMesure < 0) {
+        controlMotor(150 - difMesure, 150);
     }
 }
 
@@ -116,15 +116,18 @@ void sensorBLInterrupt(void) {
 }
 
 void changeState(int newState) { // TODO : state of the led in function of the state variable
+    digitalWrite(RED, HIGH);
+    digitalWrite(BLUE, HIGH);
+    digitalWrite(GREEN, HIGH);
     switch (newState) {
         case 0:
-            digitalWrite(BLUE, HIGH);
+            digitalWrite(BLUE, LOW);
             break;
         case 1:
-            digitalWrite(GREEN, HIGH);
+            digitalWrite(GREEN, LOW);
             break;
         case 2:
-            digitalWrite(RED, HIGH);
+            digitalWrite(RED, LOW);
             break;
     }
 }
