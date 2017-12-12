@@ -55,9 +55,9 @@ void setup(void) {
     pinMode(SENSORBL, INPUT);
     pinMode(SENSORBR, INPUT);
 
-    attachPCINT(digitalPinToPinChangeInterrupt(SENSORBB), sensorBBInterrupt, RISING);
-    attachPCINT(digitalPinToPinChangeInterrupt(SENSORBR), sensorBRInterrupt, RISING);
-    attachPCINT(digitalPinToPinChangeInterrupt(SENSORBL), sensorBLInterrupt, RISING);
+    attachPCINT(digitalPinToPinChangeInterrupt(SENSORBB), sensorBBInterrupt, CHANGE);
+    attachPCINT(digitalPinToPinChangeInterrupt(SENSORBR), sensorBRInterrupt, CHANGE);
+    attachPCINT(digitalPinToPinChangeInterrupt(SENSORBL), sensorBLInterrupt, CHANGE);
 
     if (DEBUG)
         Serial.begin(115200);
@@ -82,13 +82,14 @@ void setup(void) {
 
 void loop(void) {
     int difMesure = frontLeftSensor() - frontRightSensor();
+    difMesure *= 5;
 
     if (difMesure == 0) {
-        controlMotor(255, 255);
-    } else if (difMesure < 0) {
-        controlMotor(255, 255 - difMesure);
+        controlMotor(150, 150);
     } else if (difMesure > 0) {
-        controlMotor(255 - difMesure, 255);
+        controlMotor(150, 150 - difMesure);
+    } else if (difMesure < 0) {
+        controlMotor(150 - difMesure, 150);
     }
 }
 
@@ -115,15 +116,18 @@ void sensorBLInterrupt(void) {
 }
 
 void changeState(int newState) { // TODO : state of the led in function of the state variable
+    digitalWrite(RED, HIGH);
+    digitalWrite(BLUE, HIGH);
+    digitalWrite(GREEN, HIGH);
     switch (newState) {
         case 0:
-            digitalWrite(BLUE, HIGH);
+            digitalWrite(BLUE, LOW);
             break;
         case 1:
-            digitalWrite(GREEN, HIGH);
+            digitalWrite(GREEN, LOW);
             break;
         case 2:
-            digitalWrite(RED, HIGH);
+            digitalWrite(RED, LOW);
             break;
     }
 }
@@ -162,24 +166,4 @@ void controlMotor(int __speeda, int __speedb) {
 
     analogWrite(B2, __speedb);
 
-}
-
-void walkLeft(int speed, int dir) { // dir 0 -> Avance TODO : Correction de vitesse
-    int _speed = map(speed, 0, 100, 0, 255);
-    if (dir == 0) {
-        digitalWrite(A1, LOW);
-    } else {
-        digitalWrite(A1, HIGH);
-    }
-    analogWrite(A2, _speed);
-}
-
-void walkRight(int speed, int dir) {
-    int _speed = map(speed, 0, 100, 0, 255);
-    if (dir == 0) {
-        digitalWrite(B1, LOW);
-    } else {
-        digitalWrite(B1, HIGH);
-    }
-    analogWrite(B2, _speed);
 }
