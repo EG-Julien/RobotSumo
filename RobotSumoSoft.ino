@@ -44,8 +44,8 @@ int frontRightSensor(void);
 void setup(void) {
     initHBridge(A1, A2, B1, B2);
 
-    pinMode(BP1, OUTPUT);
-    pinMode(BP2, OUTPUT);
+    pinMode(BP1, INPUT);
+    pinMode(BP2, INPUT);
 
     pinMode(RED, OUTPUT);
     pinMode(BLUE, OUTPUT);
@@ -82,7 +82,10 @@ void setup(void) {
 
 void loop(void) {
     int difMesure = frontLeftSensor() - frontRightSensor();
-    difMesure *= 5;
+    
+    difMesure *= 10;
+      
+    Serial.println(difMesure);
 
     if (difMesure == 0) {
         controlMotor(150, 150);
@@ -91,28 +94,23 @@ void loop(void) {
     } else if (difMesure < 0) {
         controlMotor(150 - difMesure, 150);
     }
+    
+    delay(50);
 }
 
 void sensorBBInterrupt(void) { // TODO : régler la reposition du robot
+    Serial.println("BB");
     controlMotor(255, 255);
-    delay(1000);
-    controlMotor(0, 0);
 }
 
 void sensorBRInterrupt(void) {
+    Serial.println("BR");
     controlMotor(-255, -255);
-    delay(1000);
-    controlMotor(-255, 0);
-    delay(1000);
-    controlMotor(0, 0);
 }
 
 void sensorBLInterrupt(void) {
+    Serial.println("BL");
     controlMotor(-255, -255);
-    delay(1000);
-    controlMotor(0, -255);
-    delay(1000);
-    controlMotor(0, 0);
 }
 
 void changeState(int newState) { // TODO : state of the led in function of the state variable
@@ -140,11 +138,17 @@ void initHBridge(int p1, int p2, int p3, int p4) {
 }
 
 int frontLeftSensor(void) {
-    return map(analogRead(LSENS), 0, 450, 0, 255);
+    int m = analogRead(LSENS);
+    if (m < 40)
+      return 0;
+    return m;
 }
 
 int frontRightSensor(void) {
-    return map(analogRead(RSENS), 0, 450, 0, 255);
+    int m = analogRead(RSENS);
+    if (m < 40)
+      return 0;
+    return m;
 }
 
 void controlMotor(int __speeda, int __speedb) {
