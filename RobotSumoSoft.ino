@@ -41,6 +41,8 @@ void sensorBBInterrupt(void);
 int frontLeftSensor(void);
 int frontRightSensor(void);
 
+int start = 0;
+
 void setup(void) {
     initHBridge(A1, A2, B1, B2);
 
@@ -55,14 +57,12 @@ void setup(void) {
     pinMode(SENSORBL, INPUT);
     pinMode(SENSORBR, INPUT);
 
-    attachPCINT(digitalPinToPinChangeInterrupt(SENSORBB), sensorBBInterrupt, CHANGE);
-    attachPCINT(digitalPinToPinChangeInterrupt(SENSORBR), sensorBRInterrupt, CHANGE);
-    attachPCINT(digitalPinToPinChangeInterrupt(SENSORBL), sensorBLInterrupt, CHANGE);
+    attachPCINT(digitalPinToPinChangeInterrupt(SENSORBB), sensorBBInterrupt, RISING);
+    attachPCINT(digitalPinToPinChangeInterrupt(SENSORBR), sensorBRInterrupt, RISING);
+    attachPCINT(digitalPinToPinChangeInterrupt(SENSORBL), sensorBLInterrupt, RISING);
 
     if (DEBUG)
         Serial.begin(115200);
-
-    int start = 0;
 
     changeState(0);
 
@@ -78,38 +78,57 @@ void setup(void) {
     changeState(2);
 }
 
-
+int found = 0;
 
 void loop(void) {
+
+    if (found == 0) {
+        while (found != 1) {
+            controlMotor(0, 50);
+            if (frontRightSensor() > 200) {
+                found = 1;
+                controlMotor(150, 150);
+            } else if (frontLeftSensor() > 200) {
+                found = 1;
+                controlMotor(150, 150);
+            }
+        }
+    }
+
     int difMesure = frontLeftSensor() - frontRightSensor();
-    
+
     difMesure *= 10;
-      
-    Serial.println(difMesure);
 
     if (difMesure == 0) {
         controlMotor(150, 150);
     } else if (difMesure > 0) {
         controlMotor(150, 150 - difMesure);
     } else if (difMesure < 0) {
+        difMesure = (int)sqrt(pow(difMesure, 2));
         controlMotor(150 - difMesure, 150);
     }
-    
+
     delay(50);
 }
 
 void sensorBBInterrupt(void) { // TODO : régler la reposition du robot
     Serial.println("BB");
+    if (!start)
+        return;
     controlMotor(255, 255);
 }
 
 void sensorBRInterrupt(void) {
     Serial.println("BR");
+    if (!start)
+        return;
     controlMotor(-255, -255);
 }
 
 void sensorBLInterrupt(void) {
     Serial.println("BL");
+    if (!start)
+        return;
     controlMotor(-255, -255);
 }
 
@@ -140,14 +159,14 @@ void initHBridge(int p1, int p2, int p3, int p4) {
 int frontLeftSensor(void) {
     int m = analogRead(LSENS);
     if (m < 40)
-      return 0;
+        return 0;
     return m;
 }
 
 int frontRightSensor(void) {
     int m = analogRead(RSENS);
     if (m < 40)
-      return 0;
+        return 0;
     return m;
 }
 
