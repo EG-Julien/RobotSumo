@@ -1,5 +1,8 @@
 #include <Arduino.h>
 #include <PinChangeInterrupt.h>
+#include "Soft.h"
+
+#include "debug.h"
 
 #define DEBUG true
 
