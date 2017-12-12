@@ -85,10 +85,10 @@ void loop(void) {
     if (found == 0) {
         while (found != 1) {
             controlMotor(0, 50);
-            if (frontRightSensor() > 200) {
+            if (frontRightSensor() > 80) {
                 found = 1;
                 controlMotor(150, 150);
-            } else if (frontLeftSensor() > 200) {
+            } else if (frontLeftSensor() > 80) {
                 found = 1;
                 controlMotor(150, 150);
             }
@@ -96,18 +96,26 @@ void loop(void) {
     }
 
     int difMesure = frontLeftSensor() - frontRightSensor();
+    
+    Serial.print("Left : ");
+    Serial.println(frontLeftSensor());
+    Serial.print("Right : ");
+    Serial.println(frontRightSensor());
+    
+    if (frontLeftSensor() > 300 || frontRightSensor() > 300) {
+      controlMotor(255, 255);
+    } else {
+      difMesure *= 3;
 
-    difMesure *= 10;
-
-    if (difMesure == 0) {
-        controlMotor(150, 150);
-    } else if (difMesure > 0) {
-        controlMotor(150, 150 - difMesure);
-    } else if (difMesure < 0) {
+      if (difMesure == 0) {
+          controlMotor(150, 150);
+      } else if (difMesure > 0) {
+          controlMotor(150, 150 - difMesure);
+      } else if (difMesure < 0) {
         difMesure = (int)sqrt(pow(difMesure, 2));
         controlMotor(150 - difMesure, 150);
+      }
     }
-
     delay(50);
 }
 
