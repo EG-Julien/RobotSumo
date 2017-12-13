@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include <PinChangeInterrupt.h>
 
 #define DEBUG true
 
@@ -26,7 +25,9 @@
 
 #define BTRY A0
 
-int side = 0;
+#define BACK 0
+#define RIGHT 1
+#define LEFT 2
 
 void initHBridge(int p1, int p2, int p3, int p4); // Initialisation pins H Bridge
 
@@ -34,12 +35,10 @@ void controlMotor(int __speeda, int __speedb); // speed : -255 to 255
 
 void changeState(int newState);
 
-void sensorBLInterrupt(void);
-void sensorBRInterrupt(void);
-void sensorBBInterrupt(void);
-
 int frontLeftSensor(void);
 int frontRightSensor(void);
+
+void myDelay(int __ms);
 
 int start = 0;
 
@@ -56,10 +55,6 @@ void setup(void) {
     pinMode(SENSORBB, INPUT);
     pinMode(SENSORBL, INPUT);
     pinMode(SENSORBR, INPUT);
-
-    attachPCINT(digitalPinToPinChangeInterrupt(SENSORBB), sensorBBInterrupt, RISING);
-    attachPCINT(digitalPinToPinChangeInterrupt(SENSORBR), sensorBRInterrupt, RISING);
-    attachPCINT(digitalPinToPinChangeInterrupt(SENSORBL), sensorBLInterrupt, RISING);
 
     if (DEBUG)
         Serial.begin(115200);
@@ -84,14 +79,14 @@ void loop(void) {
 
     if (found == 0) {
         while (found != 1) {
-            controlMotor(0, 100);
-            if (frontRightSensor() > 150) {
+            controlMotor(0, 60);
+            if (frontRightSensor() > 150 && frontLeftSensor() > 150) {
                 found = 1;
                 controlMotor(150, 150);
-            } else if (frontLeftSensor() > 150) {
+            }/*else if (frontLeftSensor() > 100) {
                 found = 1;
                 controlMotor(150, 150);
-            }
+            }*/
         }
     }
 
@@ -103,6 +98,15 @@ void loop(void) {
         controlMotor(255, 255);
     } else if (frontLeftSensor() == 0 && frontRightSensor() == 0) {
         found = 0;
+    } else if (digitalRead(SENSORBB) == 0) {
+        controlMotor(255, 255);
+        myDelay(1000);
+    } else if (digitalRead(SENSORBL) == 0) {
+        controlMotor(-255, -255);
+        myDelay(1000);
+    } else if (digitalRead(SENSORBR) == 0) {
+        controlMotor(-255, -255);
+        myDelay(1000);
     } else {
         if (difMesure < 20 && difMesure > -20) {
             controlMotor(150, 150);
@@ -115,27 +119,6 @@ void loop(void) {
     }
 
     delay(100);
-}
-
-void sensorBBInterrupt(void) { // TODO : régler la reposition du robot
-    Serial.println("BB");
-    if (!start)
-        return;
-    controlMotor(255, 255);
-}
-
-void sensorBRInterrupt(void) {
-    Serial.println("BR");
-    if (!start)
-        return;
-    controlMotor(-255, -255);
-}
-
-void sensorBLInterrupt(void) {
-    Serial.println("BL");
-    if (!start)
-        return;
-    controlMotor(-255, -255);
 }
 
 void changeState(int newState) { // TODO : state of the led in function of the state variable
@@ -178,7 +161,7 @@ int frontRightSensor(void) {
 
 void controlMotor(int __speeda, int __speedb) {
     if (__speeda < 0) {
-        __speeda = sqrt(pow(__speeda, 2));
+        __speeda = 255 - __speeda;
         digitalWrite(A_1, HIGH);
     } else {
         digitalWrite(A_1, LOW);
@@ -187,7 +170,7 @@ void controlMotor(int __speeda, int __speedb) {
     analogWrite(A_2, __speeda);
 
     if (__speedb < 0) {
-        __speedb = sqrt(pow(__speedb, 2));
+        __speedb = 255 - __speedb;
         digitalWrite(B_1, HIGH);
     } else {
         digitalWrite(B_1, LOW);
@@ -195,4 +178,10 @@ void controlMotor(int __speeda, int __speedb) {
 
     analogWrite(B_2, __speedb);
 
+}
+
+void myDelay(int __ms) {
+    for (int i = 0; i < __ms; ++i) {
+        delayMicroseconds(1000);
+    }
 }
