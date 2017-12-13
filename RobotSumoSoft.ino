@@ -5,10 +5,10 @@
 
 //Déclaration des pins
 
-#define A1 8 // Pont en H
-#define A2 9
-#define B2 10
-#define B1 11
+#define A_1 8 // Pont en H
+#define A_2 9
+#define B_2 10
+#define B_1 11
 
 #define BP1 4 // Bouton de démarrage
 #define BP2 3
@@ -44,7 +44,7 @@ int frontRightSensor(void);
 int start = 0;
 
 void setup(void) {
-    initHBridge(A1, A2, B1, B2);
+    initHBridge(A_1, A_2, B_1, B_2);
 
     pinMode(BP1, INPUT);
     pinMode(BP2, INPUT);
@@ -84,11 +84,11 @@ void loop(void) {
 
     if (found == 0) {
         while (found != 1) {
-            controlMotor(0, 50);
-            if (frontRightSensor() > 80) {
+            controlMotor(0, 100);
+            if (frontRightSensor() > 150) {
                 found = 1;
                 controlMotor(150, 150);
-            } else if (frontLeftSensor() > 80) {
+            } else if (frontLeftSensor() > 150) {
                 found = 1;
                 controlMotor(150, 150);
             }
@@ -96,27 +96,25 @@ void loop(void) {
     }
 
     int difMesure = frontLeftSensor() - frontRightSensor();
-    
-    Serial.print("Left : ");
-    Serial.println(frontLeftSensor());
-    Serial.print("Right : ");
-    Serial.println(frontRightSensor());
-    
-    if (frontLeftSensor() > 300 || frontRightSensor() > 300) {
-      controlMotor(255, 255);
-    } else {
-      difMesure *= 3;
 
-      if (difMesure == 0) {
-          controlMotor(150, 150);
-      } else if (difMesure > 0) {
-          controlMotor(150, 150 - difMesure);
-      } else if (difMesure < 0) {
-        difMesure = (int)sqrt(pow(difMesure, 2));
-        controlMotor(150 - difMesure, 150);
-      }
+    difMesure *= 3;
+
+    if (frontLeftSensor() > 400 || frontRightSensor() > 400) {
+        controlMotor(255, 255);
+    } else if (frontLeftSensor() == 0 && frontRightSensor() == 0) {
+        found = 0;
+    } else {
+        if (difMesure < 20 && difMesure > -20) {
+            controlMotor(150, 150);
+        } else if (difMesure > 0) {
+            controlMotor(150, 150 - difMesure);
+        } else if (difMesure < 0) {
+            difMesure = (int)sqrt(pow(difMesure, 2));
+            controlMotor(150 - difMesure, 150);
+        }
     }
-    delay(50);
+
+    delay(100);
 }
 
 void sensorBBInterrupt(void) { // TODO : régler la reposition du robot
@@ -166,14 +164,14 @@ void initHBridge(int p1, int p2, int p3, int p4) {
 
 int frontLeftSensor(void) {
     int m = analogRead(LSENS);
-    if (m < 40)
+    if (m < 20)
         return 0;
     return m;
 }
 
 int frontRightSensor(void) {
     int m = analogRead(RSENS);
-    if (m < 40)
+    if (m < 20)
         return 0;
     return m;
 }
@@ -181,20 +179,20 @@ int frontRightSensor(void) {
 void controlMotor(int __speeda, int __speedb) {
     if (__speeda < 0) {
         __speeda = sqrt(pow(__speeda, 2));
-        digitalWrite(A1, HIGH);
+        digitalWrite(A_1, HIGH);
     } else {
-        digitalWrite(A1, LOW);
+        digitalWrite(A_1, LOW);
     }
 
-    analogWrite(A2, __speeda);
+    analogWrite(A_2, __speeda);
 
     if (__speedb < 0) {
         __speedb = sqrt(pow(__speedb, 2));
-        digitalWrite(B1, HIGH);
+        digitalWrite(B_1, HIGH);
     } else {
-        digitalWrite(B1, LOW);
+        digitalWrite(B_1, LOW);
     }
 
-    analogWrite(B2, __speedb);
+    analogWrite(B_2, __speedb);
 
 }
