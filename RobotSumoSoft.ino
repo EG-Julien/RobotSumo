@@ -1,5 +1,3 @@
-#include <Arduino.h>
-
 #define DEBUG true
 
 //Déclaration des pins
@@ -92,19 +90,21 @@ void loop(void) {
 
     int difMesure = frontLeftSensor() - frontRightSensor();
 
+    Serial.println(analogRead(SENSORBL));
+
     difMesure *= 3;
 
     if (frontLeftSensor() > 400 || frontRightSensor() > 400) {
         controlMotor(255, 255);
     } else if (frontLeftSensor() == 0 && frontRightSensor() == 0) {
         found = 0;
-    } else if (digitalRead(SENSORBB) == 0) {
+    } else if (analogRead(SENSORBB) > 100) {
         controlMotor(255, 255);
         myDelay(1000);
-    } else if (digitalRead(SENSORBL) == 0) {
+    } else if (analogRead(SENSORBL) > 100) {
         controlMotor(-255, -255);
         myDelay(1000);
-    } else if (digitalRead(SENSORBR) == 0) {
+    } else if (analogRead(SENSORBR) > 100) {
         controlMotor(-255, -255);
         myDelay(1000);
     } else {
